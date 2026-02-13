@@ -9,12 +9,9 @@ var totalClicks = 0;
 function randomizeImage() {
   let root = document.documentElement;
 
-  // RANDOM IMAGE EVERY TIME
   let randomIndex = Math.floor(Math.random() * images.length);
-
   root.style.setProperty("--image", "url(" + images[randomIndex] + ")");
 
-  // random position pieces
   var puzzleItems = document.querySelectorAll("#puzz i");
   puzzleItems.forEach(function (item) {
     item.style.left = Math.random() * (window.innerWidth - 120) + "px";
@@ -43,83 +40,86 @@ function reloadPuzzle() {
 // ---------------- CLICK COUNTER ----------------
 
 document.querySelectorAll("#puzz i").forEach(function (element) {
-  element.addEventListener("mousedown", function () {
+  element.addEventListener("pointerdown", function () {
     totalClicks++;
     document.querySelector("#clicks").innerHTML = totalClicks;
   });
 });
 
-// ---------------- CLICK MATCH (DESKTOP STYLE) ----------------
+// ---------------- DRAG SYSTEM (PC + MOBILE) ----------------
+
+let draggedPiece = null;
+let offsetX = 0;
+let offsetY = 0;
 
 document.querySelectorAll("#puzz i").forEach(function (piece) {
-  piece.addEventListener("click", function () {
-    var alreadyClicked = document.querySelector(".clicked");
 
-    if (alreadyClicked && alreadyClicked !== piece) {
-      alreadyClicked.classList.remove("clicked");
+  piece.addEventListener("pointerdown", function (e) {
+    draggedPiece = piece;
+
+    piece.style.zIndex = 9999;
+
+    offsetX = e.clientX - piece.offsetLeft;
+    offsetY = e.clientY - piece.offsetTop;
+
+    piece.setPointerCapture(e.pointerId);
+  });
+
+  piece.addEventListener("pointermove", function (e) {
+    if (!draggedPiece) return;
+
+    draggedPiece.style.left = (e.clientX - offsetX) + "px";
+    draggedPiece.style.top = (e.clientY - offsetY) + "px";
+  });
+
+  piece.addEventListener("pointerup", function (e) {
+    if (!draggedPiece) return;
+
+    checkDrop(draggedPiece);
+
+    draggedPiece.releasePointerCapture(e.pointerId);
+    draggedPiece = null;
+  });
+
+});
+
+// ---------------- DROP CHECK ----------------
+
+function checkDrop(piece) {
+  let pieceClass = piece.classList[0];
+
+  document.querySelectorAll("#puz i").forEach(function (slot) {
+
+    let slotRect = slot.getBoundingClientRect();
+    let pieceRect = piece.getBoundingClientRect();
+
+    // check overlap
+    if (
+      pieceRect.left < slotRect.right &&
+      pieceRect.right > slotRect.left &&
+      pieceRect.top < slotRect.bottom &&
+      pieceRect.bottom > slotRect.top
+    ) {
+
+      if (slot.classList.contains(pieceClass)) {
+        slot.classList.add("dropped");
+
+        piece.classList.add("done");
+        piece.style.visibility = "hidden";
+
+        checkIfAllDone();
+      }
+
     }
 
-    piece.classList.toggle("clicked");
   });
-});
-
-document.querySelectorAll("#puz i").forEach(function (slot) {
-  slot.addEventListener("click", function () {
-    var clickedPiece = document.querySelector(".clicked");
-    if (!clickedPiece) return;
-
-    var pieceClass = clickedPiece.classList[0];
-
-    if (slot.classList.contains(pieceClass)) {
-      slot.classList.add("dropped");
-      clickedPiece.classList.add("done");
-      clickedPiece.classList.remove("clicked");
-      clickedPiece.style.visibility = "hidden";
-
-      checkIfAllDone();
-    }
-  });
-});
-
-// ---------------- DRAG & DROP ----------------
-
-// drag start
-document.querySelectorAll("#puzz i").forEach(function (piece) {
-  piece.setAttribute("draggable", "true");
-
-  piece.addEventListener("dragstart", function (e) {
-    e.dataTransfer.setData("text/plain", piece.classList[0]);
-  });
-});
-
-// drop zones
-document.querySelectorAll("#puz i").forEach(function (slot) {
-  slot.addEventListener("dragover", function (e) {
-    e.preventDefault(); // REQUIRED
-  });
-
-  slot.addEventListener("drop", function (e) {
-    e.preventDefault();
-
-    var draggedClass = e.dataTransfer.getData("text/plain");
-
-    if (slot.classList.contains(draggedClass)) {
-      slot.classList.add("dropped");
-
-      var draggedPiece = document.querySelector("#puzz ." + draggedClass);
-
-      draggedPiece.classList.add("done");
-      draggedPiece.style.visibility = "hidden";
-
-      checkIfAllDone();
-    }
-  });
-});
+}
 
 // ---------------- COMPLETION ----------------
 
 function checkIfAllDone() {
   if (document.querySelectorAll(".dropped").length === 9) {
+
     var puz = document.querySelector("#puz");
 
     puz.classList.add("allDone");
@@ -131,28 +131,4 @@ function checkIfAllDone() {
       randomizeImage();
     }, 1500);
   }
-
 }
-// ---------------- MOBILE TOUCH DRAG SUPPORT ----------------
-
-document.querySelectorAll("#puzz i").forEach(function (piece) {
-
-  piece.addEventListener("touchstart", function (e) {
-    piece.classList.add("clicked");
-  });
-
-  piece.addEventListener("touchmove", function (e) {
-    e.preventDefault();
-
-    let touch = e.touches[0];
-
-    piece.style.position = "absolute";
-    piece.style.left = (touch.clientX - 50) + "px";
-    piece.style.top = (touch.clientY - 50) + "px";
-  });
-
-  piece.addEventListener("touchend", function (e) {
-    piece.classList.remove("clicked");
-  });
-
-});
