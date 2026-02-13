@@ -131,4 +131,28 @@ function checkIfAllDone() {
       randomizeImage();
     }, 1500);
   }
+
 }
+// ---------------- MOBILE TOUCH DRAG SUPPORT ----------------
+
+document.querySelectorAll("#puzz i").forEach(function (piece) {
+
+  piece.addEventListener("touchstart", function (e) {
+    piece.classList.add("clicked");
+  });
+
+  piece.addEventListener("touchmove", function (e) {
+    e.preventDefault();
+
+    let touch = e.touches[0];
+
+    piece.style.position = "absolute";
+    piece.style.left = (touch.clientX - 50) + "px";
+    piece.style.top = (touch.clientY - 50) + "px";
+  });
+
+  piece.addEventListener("touchend", function (e) {
+    piece.classList.remove("clicked");
+  });
+
+});
