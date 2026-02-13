@@ -33,9 +33,8 @@ function reloadPuzzle() {
     el.classList.remove("dropped");
   });
 
-  var puz = document.querySelector("#puz");
-  puz.classList.remove("allDone");
-  puz.style = "";
+  document.querySelector("#clicks").innerHTML = 0;
+  totalClicks = 0;
 }
 
 // ---------------- CLICK COUNTER ----------------
@@ -84,7 +83,7 @@ document.querySelectorAll("#puzz i").forEach(function (piece) {
 
 });
 
-// ---------------- DROP CHECK (Distance Based) ----------------
+// ---------------- DROP CHECK ----------------
 
 function checkDrop(piece) {
   let pieceClass = piece.classList[0];
@@ -106,10 +105,9 @@ function checkDrop(piece) {
       Math.pow(pieceCenterY - slotCenterY, 2)
     );
 
-    // if piece is close enough to slot
     if (distance < 60) {
-
       if (slot.classList.contains(pieceClass)) {
+
         slot.classList.add("dropped");
 
         piece.classList.add("done");
@@ -118,7 +116,6 @@ function checkDrop(piece) {
         checkIfAllDone();
       }
     }
-
   });
 }
 
@@ -126,13 +123,6 @@ function checkDrop(piece) {
 
 function checkIfAllDone() {
   if (document.querySelectorAll(".dropped").length === 9) {
-
-    var puz = document.querySelector("#puz");
-
-    puz.classList.add("allDone");
-    puz.style.border = "none";
-    puz.style.animation = "allDone 1s linear forwards";
-
     setTimeout(function () {
       reloadPuzzle();
       randomizeImage();
