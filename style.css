@@ -8,6 +8,7 @@ body {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 #puz,
@@ -34,8 +35,9 @@ body {
   border: 0;
 }
 
+
 #puz i {
-  float: left;
+
   width: 100px;
   height: 100px;
   outline: 1px dashed lightgray;
@@ -53,6 +55,8 @@ body {
   background-size: 300px 300px;
   cursor: move;
   box-shadow: 0 0 10px rgba(0, 0, 0, .25);
+  touch-action:none;
+  user-select:none;
 }
 
 .first {
@@ -143,3 +147,4 @@ body {
   right: 5px;
 
 }
+
