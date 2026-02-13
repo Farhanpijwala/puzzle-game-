@@ -40,6 +40,9 @@ body {
   height: 100px;
   outline: 1px dashed lightgray;
 }
+#puzz i {
+  touch-action: none;
+}
 
 #puzz i {
   position: absolute;
@@ -138,4 +141,5 @@ body {
   position: absolute;
   bottom: 5px;
   right: 5px;
+
 }
