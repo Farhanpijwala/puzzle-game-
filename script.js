@@ -17,6 +17,7 @@ function randomizeImage() {
     item.style.left = Math.random() * (window.innerWidth - 120) + "px";
     item.style.top = Math.random() * (window.innerHeight - 120) + "px";
     item.style.visibility = "visible";
+    item.style.zIndex = 10;
   });
 }
 
@@ -59,8 +60,8 @@ document.querySelectorAll("#puzz i").forEach(function (piece) {
 
     piece.style.zIndex = 9999;
 
-    offsetX = e.clientX - piece.offsetLeft;
-    offsetY = e.clientY - piece.offsetTop;
+    offsetX = e.clientX - piece.getBoundingClientRect().left;
+    offsetY = e.clientY - piece.getBoundingClientRect().top;
 
     piece.setPointerCapture(e.pointerId);
   });
@@ -83,23 +84,30 @@ document.querySelectorAll("#puzz i").forEach(function (piece) {
 
 });
 
-// ---------------- DROP CHECK ----------------
+// ---------------- DROP CHECK (Distance Based) ----------------
 
 function checkDrop(piece) {
   let pieceClass = piece.classList[0];
 
+  let pieceRect = piece.getBoundingClientRect();
+  let pieceCenterX = pieceRect.left + pieceRect.width / 2;
+  let pieceCenterY = pieceRect.top + pieceRect.height / 2;
+
   document.querySelectorAll("#puz i").forEach(function (slot) {
 
-    let slotRect = slot.getBoundingClientRect();
-    let pieceRect = piece.getBoundingClientRect();
+    if (slot.classList.contains("dropped")) return;
 
-    // check overlap
-    if (
-      pieceRect.left < slotRect.right &&
-      pieceRect.right > slotRect.left &&
-      pieceRect.top < slotRect.bottom &&
-      pieceRect.bottom > slotRect.top
-    ) {
+    let slotRect = slot.getBoundingClientRect();
+    let slotCenterX = slotRect.left + slotRect.width / 2;
+    let slotCenterY = slotRect.top + slotRect.height / 2;
+
+    let distance = Math.sqrt(
+      Math.pow(pieceCenterX - slotCenterX, 2) +
+      Math.pow(pieceCenterY - slotCenterY, 2)
+    );
+
+    // if piece is close enough to slot
+    if (distance < 60) {
 
       if (slot.classList.contains(pieceClass)) {
         slot.classList.add("dropped");
@@ -109,7 +117,6 @@ function checkDrop(piece) {
 
         checkIfAllDone();
       }
-
     }
 
   });
