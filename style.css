@@ -70,7 +70,7 @@ body {
   background: var(--color);
   background-image: var(--image);
   background-size: 300px 300px;
- cursor: grab;
+  cursor: grab;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
   touch-action: none;
   user-select: none;
@@ -78,41 +78,17 @@ body {
 }
 
 /* correct background positions */
-.first {
-  background-position: left top !important;
-}
+.first { background-position: left top !important; }
+.secon { background-position: center top !important; }
+.third { background-position: right top !important; }
 
-.secon {
-  background-position: center top !important;
-}
+.fourt { background-position: left center !important; }
+.fifth { background-position: center center !important; }
+.sixth { background-position: right center !important; }
 
-.third {
-  background-position: right top !important;
-}
-
-.fourt {
-  background-position: left center !important;
-}
-
-.fifth {
-  background-position: center center !important;
-}
-
-.sixth {
-  background-position: right center !important;
-}
-
-.seven {
-  background-position: left bottom !important;
-}
-
-.eight {
-  background-position: center bottom !important;
-}
-
-.ninth {
-  background-position: right bottom !important;
-}
+.seven { background-position: left bottom !important; }
+.eight { background-position: center bottom !important; }
+.ninth { background-position: right bottom !important; }
 
 /* when dropped */
 .dropped {
@@ -134,4 +110,3 @@ body {
   bottom: 10px;
   right: 10px;
 }
-
