@@ -9,15 +9,17 @@ var totalClicks = 0;
 function randomizeImage() {
   let root = document.documentElement;
 
+  // RANDOM IMAGE EVERY TIME
   let randomIndex = Math.floor(Math.random() * images.length);
+
   root.style.setProperty("--image", "url(" + images[randomIndex] + ")");
 
+  // random position pieces
   var puzzleItems = document.querySelectorAll("#puzz i");
   puzzleItems.forEach(function (item) {
     item.style.left = Math.random() * (window.innerWidth - 120) + "px";
     item.style.top = Math.random() * (window.innerHeight - 120) + "px";
     item.style.visibility = "visible";
-    item.style.zIndex = 10;
   });
 }
 
@@ -33,99 +35,145 @@ function reloadPuzzle() {
     el.classList.remove("dropped");
   });
 
-  document.querySelector("#clicks").innerHTML = 0;
-  totalClicks = 0;
+  var puz = document.querySelector("#puz");
+  puz.classList.remove("allDone");
+  puz.style = "";
 }
 
 // ---------------- CLICK COUNTER ----------------
 
 document.querySelectorAll("#puzz i").forEach(function (element) {
-  element.addEventListener("pointerdown", function () {
+  element.addEventListener("mousedown", function () {
     totalClicks++;
     document.querySelector("#clicks").innerHTML = totalClicks;
   });
 });
 
-// ---------------- DRAG SYSTEM (PC + MOBILE) ----------------
-
-let draggedPiece = null;
-let offsetX = 0;
-let offsetY = 0;
+// ---------------- CLICK MATCH (DESKTOP STYLE) ----------------
 
 document.querySelectorAll("#puzz i").forEach(function (piece) {
+  piece.addEventListener("click", function () {
+    var alreadyClicked = document.querySelector(".clicked");
 
-  piece.addEventListener("pointerdown", function (e) {
-    draggedPiece = piece;
+    if (alreadyClicked && alreadyClicked !== piece) {
+      alreadyClicked.classList.remove("clicked");
+    }
 
-    piece.style.zIndex = 9999;
-
-    offsetX = e.clientX - piece.getBoundingClientRect().left;
-    offsetY = e.clientY - piece.getBoundingClientRect().top;
-
-    piece.setPointerCapture(e.pointerId);
+    piece.classList.toggle("clicked");
   });
-
-  piece.addEventListener("pointermove", function (e) {
-    if (!draggedPiece) return;
-
-    draggedPiece.style.left = (e.clientX - offsetX) + "px";
-    draggedPiece.style.top = (e.clientY - offsetY) + "px";
-  });
-
-  piece.addEventListener("pointerup", function (e) {
-    if (!draggedPiece) return;
-
-    checkDrop(draggedPiece);
-
-    draggedPiece.releasePointerCapture(e.pointerId);
-    draggedPiece = null;
-  });
-
 });
 
-// ---------------- DROP CHECK ----------------
+document.querySelectorAll("#puz i").forEach(function (slot) {
+  slot.addEventListener("click", function () {
+    var clickedPiece = document.querySelector(".clicked");
+    if (!clickedPiece) return;
 
-function checkDrop(piece) {
-  let pieceClass = piece.classList[0];
+    var pieceClass = clickedPiece.classList[0];
 
-  let pieceRect = piece.getBoundingClientRect();
-  let pieceCenterX = pieceRect.left + pieceRect.width / 2;
-  let pieceCenterY = pieceRect.top + pieceRect.height / 2;
+    if (slot.classList.contains(pieceClass)) {
+      slot.classList.add("dropped");
+      clickedPiece.classList.add("done");
+      clickedPiece.classList.remove("clicked");
+      clickedPiece.style.visibility = "hidden";
 
-  document.querySelectorAll("#puz i").forEach(function (slot) {
-
-    if (slot.classList.contains("dropped")) return;
-
-    let slotRect = slot.getBoundingClientRect();
-    let slotCenterX = slotRect.left + slotRect.width / 2;
-    let slotCenterY = slotRect.top + slotRect.height / 2;
-
-    let distance = Math.sqrt(
-      Math.pow(pieceCenterX - slotCenterX, 2) +
-      Math.pow(pieceCenterY - slotCenterY, 2)
-    );
-
-    if (distance < 60) {
-      if (slot.classList.contains(pieceClass)) {
-
-        slot.classList.add("dropped");
-
-        piece.classList.add("done");
-        piece.style.visibility = "hidden";
-
-        checkIfAllDone();
-      }
+      checkIfAllDone();
     }
   });
-}
+});
+
+// ---------------- DRAG & DROP ----------------
+
+// drag start
+document.querySelectorAll("#puzz i").forEach(function (piece) {
+  piece.setAttribute("draggable", "true");
+
+  piece.addEventListener("dragstart", function (e) {
+    e.dataTransfer.setData("text/plain", piece.classList[0]);
+  });
+});
+
+// drop zones
+document.querySelectorAll("#puz i").forEach(function (slot) {
+  slot.addEventListener("dragover", function (e) {
+    e.preventDefault(); // REQUIRED
+  });
+
+  slot.addEventListener("drop", function (e) {
+    e.preventDefault();
+
+    var draggedClass = e.dataTransfer.getData("text/plain");
+
+    if (slot.classList.contains(draggedClass)) {
+      slot.classList.add("dropped");
+
+      var draggedPiece = document.querySelector("#puzz ." + draggedClass);
+
+      draggedPiece.classList.add("done");
+      draggedPiece.style.visibility = "hidden";
+
+      checkIfAllDone();
+    }
+  });
+});
 
 // ---------------- COMPLETION ----------------
 
 function checkIfAllDone() {
   if (document.querySelectorAll(".dropped").length === 9) {
+    var puz = document.querySelector("#puz");
+
+    puz.classList.add("allDone");
+    puz.style.border = "none";
+    puz.style.animation = "allDone 1s linear forwards";
+
     setTimeout(function () {
       reloadPuzzle();
       randomizeImage();
     }, 1500);
   }
 }
+// ---------------- MOBILE TOUCH DRAG SUPPORT ----------------
+
+document.querySelectorAll("#puzz i").forEach(function (piece) {
+
+  piece.addEventListener("touchstart", function (e) {
+    piece.classList.add("clicked");
+  });
+
+  piece.addEventListener("touchmove", function (e) {
+    e.preventDefault();
+
+    let touch = e.touches[0];
+
+    piece.style.position = "absolute";
+    piece.style.left = (touch.clientX - 50) + "px";
+    piece.style.top = (touch.clientY - 50) + "px";
+  }, { passive: false });
+
+  piece.addEventListener("touchend", function (e) {
+    piece.classList.remove("clicked");
+
+    let pieceClass = piece.classList[0];
+    let pieceRect = piece.getBoundingClientRect();
+
+    document.querySelectorAll("#puz i").forEach(function (slot) {
+      let slotRect = slot.getBoundingClientRect();
+
+      // overlap check
+      if (
+        pieceRect.left < slotRect.right &&
+        pieceRect.right > slotRect.left &&
+        pieceRect.top < slotRect.bottom &&
+        pieceRect.bottom > slotRect.top
+      ) {
+        if (slot.classList.contains(pieceClass)) {
+          slot.classList.add("dropped");
+          piece.classList.add("done");
+          piece.style.visibility = "hidden";
+          checkIfAllDone();
+        }
+      }
+    });
+  });
+
+});
